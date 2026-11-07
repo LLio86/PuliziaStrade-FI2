@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="scuro">
+<head>
+  <meta charset="UTF-8">
+  <title>Pulizia Strade Firenze 🧹 - Spazzamento e Notifiche</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="Orari, divieti di sosta per spazzamento strade nel Comune di Firenze e notifiche push il giorno prima nella tua zona.">
+
+  <!-- PWA & Apple Mobile Web App -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pulizia Strade">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Fogli di stile modulari della nuova architettura -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/map.css">
+  <link rel="stylesheet" href="css/notifications.css">
+  <link rel="stylesheet" href="css/themes.css">
+</head>
+
+<body>
+  <!-- 📌 Header Principale -->
+  <header class="app-header">
+    <div class="app-brand">
+      <span class="app-logo">🧹</span>
+      <div class="app-title-group">
+        <h1>Pulizia Strade</h1>
+        <p>Comune di Firenze</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- 📱 Contenitore Applicazione -->
+  <main class="app-container">
+
+    <!-- 📲 Banner Installazione PWA (Android / Desktop) -->
+    <div id="pwa-install-banner" class="pwa-banner" style="display:none;">
+      <div class="pwa-banner-content">
+        <span class="pwa-banner-icon">📲</span>
+        <div class="pwa-banner-text">
+          <h4>Installa come App</h4>
+          <p>Accesso rapido da schermata home e notifiche push</p>
+        </div>
+      </div>
+      <div class="pwa-banner-actions">
+        <button id="btn-pwa-install" class="btn btn-sm btn-primary">Installa</button>
+        <button id="btn-pwa-dismiss" class="btn-icon" title="Chiudi">×</button>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         📍 SEZIONE 1: POSIZIONE ATTUALE E MAPPA
+         ======================================================================= -->
+    <section class="sezione section-active" id="sezione-posizione">
+      <!-- Mappa con FAB Ricentra -->
+      <div class="map-wrapper">
+        <div id="map"></div>
+        <button id="btn-recenter" class="btn-fab-recenter active" title="Centra la mia posizione GPS">
+          🧭
+        </button>
+      </div>
+
+      <!-- Scheda Posizione Attuale -->
+      <div class="card info-card">
+        <div class="card-header">
+          <span style="font-size: 1.4rem;">📍</span>
+          <div style="flex: 1;">
+            <h3 class="card-title" id="pos-address">Rilevamento posizione GPS...</h3>
+            <p class="card-subtitle" id="pos-coords">Acquisizione coordinate da satellite...</p>
+          </div>
+        </div>
+
+        <!-- Ricerca / Cambio manuale via rapido -->
+        <div style="margin-top: 10px; position: relative;">
+          <input type="text" id="pos-manual-street" class="search-input"
+                 style="background: var(--bg-input); padding: 7px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.8rem; width: 100%;"
+                 placeholder="Imposta o cerca un'altra via manualmente..." autocomplete="off" />
+          <div id="pos-manual-suggestions" class="suggestions-dropdown"></div>
+        </div>
+      </div>
+
+      <!-- Risultati Spazzamento per la Via Corrente -->
+      <div id="pos-cleaning-cards">
+        <div class="card">
+          <p class="text-sm text-secondary">Caricamento dati di spazzamento per la tua via...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         📅 SEZIONE 2: CALENDARIO E PULIZIA DEL GIORNO
+         ======================================================================= -->
+    <section class="sezione" id="sezione-pulizia" style="display:none;">
+      <div style="margin-bottom: 8px;">
+        <h3 id="schedule-title" style="font-size: 1.15rem; font-weight: 700;">📅 Pulizia Strade</h3>
+      </div>
+
+      <!-- Selettore rapido data (Oggi / Domani / Dopodomani / Calendario) -->
+      <div class="chips-scroll-row" id="schedule-date-chips"></div>
+      <input type="date" id="schedule-date-picker" style="display:none;" />
+
+      <!-- Statistiche della giornata -->
+      <div id="schedule-stats"></div>
+
+      <!-- Ricerca interna e toggle lista/mappa -->
+      <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+        <div class="search-input-box" style="flex: 1;">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="schedule-search-input" class="search-input" placeholder="Cerca tra le vie in pulizia..." />
+        </div>
+        <button id="btn-toggle-schedule-view" class="btn btn-outline btn-sm" style="white-space: nowrap;">
+          🗺️ Vista Mappa
+        </button>
+      </div>
+
+      <!-- Filtri di stato -->
+      <div class="chips-scroll-row" id="schedule-filter-chips"></div>
+
+      <!-- Vista Lista -->
+      <div id="schedule-list-container"></div>
+
+      <!-- Vista Mappa del Giorno -->
+      <div id="schedule-map-container" style="display:none;"></div>
+    </section>
+
+    <!-- =======================================================================
+         ❤️ SEZIONE 3: PREFERITI E RICERCA VIE
+         ======================================================================= -->
+    <section class="sezione" id="sezione-preferiti" style="display:none;">
+      <div style="margin-bottom: 12px;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 4px;">❤️ Le Tue Strade Preferite</h3>
+        <p class="card-subtitle">Salva le vie dove parcheggi abitualmente (casa, lavoro, scuola) e controlla i turni</p>
+      </div>
+
+      <!-- Ricerca istantanea con autocompletamento -->
+      <div class="search-wrapper">
+        <div class="search-input-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="fav-search-input" class="search-input" placeholder="Cerca qualsiasi via di Firenze (es. Santo Spirito)..." autocomplete="off" />
+          <button id="btn-clear-fav-search" class="search-clear-btn" style="display:none;">×</button>
+        </div>
+        <div id="fav-search-suggestions" class="suggestions-dropdown"></div>
+      </div>
+
+      <!-- Elenco delle vie salvate -->
+      <div id="fav-streets-list"></div>
+    </section>
+
+    <!-- =======================================================================
+         🔔 SEZIONE 4: NOTIFICHE PUSH PER I PREFERITI
+         ======================================================================= -->
+    <section class="sezione" id="sezione-notifiche" style="display:none;">
+      <div style="margin-bottom: 12px;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 4px;">🔔 Notifiche Pulizia Strade</h3>
+        <p class="card-subtitle">Ricevi un avviso push il giorno prima dello spazzamento per tutte le tue vie preferite.</p>
+      </div>
+
+      <!-- Scheda 1: Attivazione Notifiche -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+          <div>
+            <h4 class="card-title" style="font-size: 1rem; margin-bottom: 2px;">Notifiche Push</h4>
+            <div style="margin-top: 4px;">
+              <span id="notif-perm-badge" class="status-badge status-badge-warning">● Inizializzazione...</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button id="btn-enable-notif" class="btn btn-primary btn-sm" style="display:none;">Consenti</button>
+            <label class="switch-label">
+              <input type="checkbox" id="notif-master-switch" />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scheda 2: Orari di Ricezione (Scelta Multipla) -->
+      <div class="card">
+        <h4 class="card-title" style="font-size: 0.95rem; margin-bottom: 4px;">⏰ Orari di Ricezione Avviso</h4>
+        <p class="text-xs text-secondary" style="margin-bottom: 10px;">
+          Tocca uno o più orari in cui desideri ricevere la notifica il giorno prima:
+        </p>
+        <div id="notif-hours-chips" class="hours-grid"></div>
+        <p id="notif-hours-summary" class="text-xs text-secondary" style="margin-top: 10px; font-weight: 600; color: var(--color-primary);"></p>
+      </div>
+
+      <!-- Scheda 3: Strade Coperte (Tutti i Preferiti) -->
+      <div class="card">
+        <h4 class="card-title" style="font-size: 0.95rem; margin-bottom: 4px;">📍 Strade Monitorate</h4>
+        <p class="text-xs text-secondary" style="margin-bottom: 10px;">
+          Le notifiche vengono inviate automaticamente per <strong>tutte le strade</strong> aggiunte ai Preferiti:
+        </p>
+        <div id="notif-fav-streets-box"></div>
+      </div>
+
+      <!-- Scheda 4: Pulsanti di Test e Simulazione -->
+      <div class="card">
+        <h4 class="card-title" style="font-size: 0.95rem; margin-bottom: 8px;">🧪 Test Notifiche</h4>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button id="btn-test-notif-now" class="btn btn-outline btn-block btn-sm">
+            🔔 Invia notifica push di prova adesso
+          </button>
+          <button id="btn-simulate-day-before" class="btn btn-primary btn-block btn-sm">
+            ⏰ Simula avviso reale del giorno prima
+          </button>
+        </div>
+      </div>
+
+      <!-- Nota per iPhone -->
+      <div class="card" style="background: rgba(30, 41, 59, 0.4);">
+        <p class="text-xs text-secondary" style="margin: 0; line-height: 1.4;">
+          📱 <b>Su iPhone:</b> per ricevere le notifiche push, tocca il tasto <b>Condividi</b> in Safari e scegli <b>"Aggiungi alla schermata Home"</b>.
+        </p>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         ⚙️ SEZIONE 5: IMPOSTAZIONI, INFO & RIMORZIONI SAS
+         ======================================================================= -->
+    <section class="sezione" id="sezione-impostazioni" style="display:none;">
+      <div style="margin-bottom: 12px;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 4px;">⚙️ Impostazioni & Utilità</h3>
+        <p class="card-subtitle">Personalizza aspetto, tema, accessibilità e consulta i numeri utili</p>
+      </div>
+
+      <div class="card">
+        <!-- Tema -->
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-title">🎨 Tema Grafico</span>
+            <span class="setting-subtitle">Modalità visiva dell'applicazione</span>
+          </div>
+          <select id="tema-select" class="setting-select">
+            <option value="scuro">🌙 Scuro (AMOLED)</option>
+            <option value="chiaro">☀️ Chiaro</option>
+            <option value="alto-contrasto">⚡ Alto Contrasto (AAA)</option>
+          </select>
+        </div>
+
+        <!-- Tema Automatico -->
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-title">🌐 Tema Automatico</span>
+            <span class="setting-subtitle">Attiva dark mode di notte o in base al sistema</span>
+          </div>
+          <label class="switch-label">
+            <input type="checkbox" id="tema-auto-checkbox" checked />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <!-- Dimensione Testo -->
+        <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; width: 100%;">
+            <span class="setting-title">🔠 Dimensione Testo</span>
+            <span id="dimensione-testo-valore" style="font-weight: 700; color: var(--color-primary);">100%</span>
+          </div>
+          <input type="range" id="dimensione-testo" min="0.75" max="1.25" step="0.05" value="1.0" style="width: 100%; accent-color: var(--color-primary);" />
+        </div>
+      </div>
+
+      <!-- Condivisione -->
+      <div class="card">
+        <h4 class="card-title" style="margin-bottom: 10px;">📤 Condividi l'App</h4>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button id="btn-share-native" class="btn btn-primary btn-block">
+            📢 Condividi con amici o familiari
+          </button>
+          <a href="https://wa.me/?text=Scopri%20quando%20puliranno%20la%20tua%20via%20a%20Firenze%20e%20ricevi%20notifiche%20il%20giorno%20prima%20%F0%9F%A7%B9%0Ahttps%3A%2F%2Fllio86.github.io%2FPuliziaStrade-FI%2F" target="_blank" class="btn btn-outline btn-block">
+            💬 Invia su WhatsApp
+          </a>
+          <button id="btn-copy-link" class="btn btn-outline btn-block">
+            🔗 Copia Link dell'App
+          </button>
+        </div>
+      </div>
+
+      <!-- Rimozioni e Depositeria Comunale SAS -->
+      <div class="card">
+        <h4 class="card-title" style="margin-bottom: 6px;">🚗 Auto rimossa per pulizia strade?</h4>
+        <p class="text-sm text-secondary" style="margin-bottom: 10px;">
+          Se il veicolo è stato rimosso dalla Polizia Municipale durante lo spazzamento, contatta la <strong>Depositeria Comunale SAS</strong>:
+        </p>
+        <div style="background: var(--bg-input); padding: 10px 12px; border-radius: var(--radius-sm); font-size: 0.85rem; line-height: 1.5;">
+          📍 <strong>Depositeria Comunale:</strong> Via Allende 18/20, Firenze<br>
+          📞 <strong>Centrale SAS / Polizia Municipale:</strong> <a href="tel:05540401" style="color: var(--color-primary); font-weight: 700;">055 40401</a><br>
+          🌐 <strong>Portale SAS:</strong> <a href="https://www.serviziallastrada.it" target="_blank" rel="noopener" style="color: var(--color-primary); font-weight: 600;">serviziallastrada.it</a>
+        </div>
+      </div>
+
+      <!-- Dati e Cache Offline -->
+      <div class="card">
+        <h4 class="card-title" style="margin-bottom: 4px;">💾 Dati Offline & Archiviazione</h4>
+        <p class="text-xs text-secondary" style="margin-bottom: 8px;">
+          I dati dello spazzamento sono memorizzati in locale nel database IndexedDB per garantire il funzionamento anche senza connessione internet.
+        </p>
+        <p id="cache-status-text" class="text-xs text-secondary" style="margin-bottom: 10px; font-weight: 600;">
+          Stato: Dati memorizzati in locale nel dispositivo
+        </p>
+        <button id="btn-clear-cache" class="btn btn-outline btn-sm">🔄 Svuota cache e riscarica dati</button>
+      </div>
+
+      <!-- Informazioni & Crediti -->
+      <div class="card">
+        <h4 class="card-title" style="margin-bottom: 6px;">ℹ️ Informazioni sull'Applicazione</h4>
+        <p class="text-xs text-secondary" style="line-height: 1.6;">
+          Versione: <strong>PWA 3.0 (Push & Day-Before Alerts)</strong><br>
+          Dati forniti da: <strong>Comune di Firenze Open Data / Alia Servizi Ambientali</strong><br>
+          Progettata da zero per offrire massima reattività, notifiche di promemoria e conformità offline.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =======================================================================
+       📋 BOTTOM SHEET DETTAGLI STRADA
+       ======================================================================= -->
+  <div id="sheet-backdrop" class="sheet-backdrop"></div>
+  <div id="street-detail-sheet" class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <h3 id="sheet-street-title" class="sheet-title">Nome Strada</h3>
+        <p id="sheet-street-stretch" class="sheet-subtitle"></p>
+      </div>
+      <button id="btn-close-sheet" class="btn-icon" title="Chiudi">✕</button>
+    </div>
+    <div id="sheet-street-body"></div>
+    <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+      <button id="btn-sheet-toggle-fav" class="btn btn-primary btn-block">
+        ❤️ Aggiungi ai Preferiti (Avvisi attivi)
+      </button>
+      <button id="btn-sheet-show-map" class="btn btn-outline btn-block">
+        🗺️ Mostra sulla Mappa
+      </button>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       🍎 GUIDA INSTALLAZIONE IOS SAFARI
+       ======================================================================= -->
+  <div id="ios-install-guide" class="ios-guide-modal" style="display:none;">
+    <span style="font-size: 1.5rem;">📲</span>
+    <div style="flex: 1; font-size: 0.82rem; line-height: 1.35;">
+      Per installare l'app e ricevere notifiche push su iPhone: tocca il tasto <b>Condividi</b> <span style="font-size: 1rem;">⎙</span> in Safari e seleziona <b>"Aggiungi alla schermata Home"</b>.
+    </div>
+    <button id="btn-close-ios-guide" class="btn-icon">×</button>
+  </div>
+
+  <!-- =======================================================================
+       🔘 BOTTOM NAVIGATION BAR (5 TAB)
+       ======================================================================= -->
+  <nav class="bottom-nav">
+    <button class="bottom-nav-item active" data-sezione="posizione">
+      <span class="nav-icon">🗺️</span>
+      <span class="nav-label">Posizione</span>
+    </button>
+    <button class="bottom-nav-item" data-sezione="pulizia">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">Calendario</span>
+    </button>
+    <button class="bottom-nav-item" data-sezione="preferiti">
+      <span class="nav-icon">❤️</span>
+      <span class="nav-label">Preferiti</span>
+    </button>
+    <button class="bottom-nav-item" data-sezione="notifiche">
+      <span class="nav-icon">🔔</span>
+      <span class="nav-label">Notifiche</span>
+    </button>
+    <button class="bottom-nav-item" data-sezione="impostazioni">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Altro</span>
+    </button>
+  </nav>
+
+  <!-- Toast di notifica in-app -->
+  <div id="app-toast" class="app-toast"></div>
+
+  <!-- Script Leaflet e Modulo Applicativo Principale -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

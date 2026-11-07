@@ -1,0 +1,133 @@
+/**
+ * themes.css - Supporto per tema Chiaro, Scuro (AMOLED) e Alto Contrasto (WCAG AAA)
+ */
+
+/* Tema Chiaro */
+[data-theme="chiaro"] {
+  --bg-app: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-input: #e2e8f0;
+  --border-color: #cbd5e1;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 10px rgba(0,0,0,0.12);
+}
+
+[data-theme="chiaro"] .app-header {
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid #cbd5e1;
+}
+
+[data-theme="chiaro"] .bottom-nav {
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid #cbd5e1;
+}
+
+[data-theme="chiaro"] .bottom-sheet {
+  background: #ffffff;
+}
+
+[data-theme="chiaro"] .cleaning-details-grid,
+[data-theme="chiaro"] .fav-info-box,
+[data-theme="chiaro"] .sheet-info-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+[data-theme="chiaro"] .alert-timeline-box {
+  background: #ffffff;
+}
+
+[data-theme="chiaro"] .leaflet-popup-content-wrapper {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+[data-theme="chiaro"] .leaflet-popup-tip {
+  background: #ffffff !important;
+}
+
+[data-theme="chiaro"] .fav-bg-red {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%) !important;
+  border-left: 5px solid #dc2626 !important;
+  border-color: #f87171 !important;
+}
+
+[data-theme="chiaro"] .fav-bg-red .fav-info-box {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(220, 38, 38, 0.25) !important;
+}
+
+[data-theme="chiaro"] .fav-bg-red .street-name {
+  color: #991b1b !important;
+}
+
+[data-theme="chiaro"] .fav-bg-yellow {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+  border-left: 5px solid #d97706 !important;
+  border-color: #fbbf24 !important;
+}
+
+[data-theme="chiaro"] .fav-bg-yellow .fav-info-box {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(217, 119, 6, 0.25) !important;
+}
+
+[data-theme="chiaro"] .fav-bg-yellow .street-name {
+  color: #92400e !important;
+}
+
+/* Tema Alto Contrasto (WCAG AAA) */
+[data-theme="alto-contrasto"] {
+  --bg-app: #000000;
+  --bg-card: #000000;
+  --bg-card-hover: #121212;
+  --bg-input: #1a1a1a;
+  --border-color: #ffffff;
+
+  --text-primary: #ffffff;
+  --text-secondary: #ffff00;
+  --text-muted: #e0e0e0;
+
+  --color-primary: #ffff00;
+  --color-primary-hover: #e6e600;
+  --color-primary-light: rgba(255, 255, 0, 0.2);
+
+  --color-warning: #ffcc00;
+  --color-danger: #ff4d4d;
+  --color-success: #00ff66;
+}
+
+[data-theme="alto-contrasto"] .card {
+  border: 2px solid #ffffff;
+}
+
+[data-theme="alto-contrasto"] .chip {
+  border: 2px solid #ffffff;
+}
+
+[data-theme="alto-contrasto"] .chip.active {
+  background: #ffff00;
+  color: #000000;
+  border-color: #ffff00;
+}
+
+[data-theme="alto-contrasto"] .btn-primary {
+  background: #ffff00;
+  color: #000000;
+  font-weight: 800;
+}
+
+[data-theme="alto-contrasto"] .bottom-nav-item.active {
+  color: #ffff00;
+}
+
+[data-theme="alto-contrasto"] .bottom-nav-item.active::before {
+  background: #ffff00;
+}

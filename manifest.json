@@ -1,0 +1,68 @@
+{
+  "name": "Pulizia Strade Firenze - Spazzamento e Notifiche",
+  "short_name": "Pulizia Firenze",
+  "description": "Orari pulizia strade a Firenze, mappa divieti di sosta e avvisi push il giorno prima dello spazzamento.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "lang": "it-IT",
+  "dir": "ltr",
+  "categories": ["utilities", "travel", "navigation"],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icona.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/favicon.ico",
+      "sizes": "48x48 32x32 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Posizione Attuale",
+      "short_name": "Posizione",
+      "description": "Controlla la via in cui ti trovi adesso",
+      "url": "./index.html#pos",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Avvisi e Notifiche",
+      "short_name": "Notifiche",
+      "description": "Gestisci promemoria del giorno prima",
+      "url": "./index.html#notifiche",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Calendario Pulizia",
+      "short_name": "Calendario",
+      "description": "Visualizza le strade in pulizia oggi e domani",
+      "url": "./index.html#pulizia",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Strade Preferite",
+      "short_name": "Preferiti",
+      "description": "Consulta le vie salvate per il parcheggio",
+      "url": "./index.html#preferiti",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
